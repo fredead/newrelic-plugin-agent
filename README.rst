@@ -1,3 +1,11 @@
+
+
+This is a fork of the meetme plugin with some minor changes
+
+- Fix for python postgres replication 
+- Change to setup a different dispaly at newrelic ( If you want access please just ask)
+
+
 NewRelic Plugin Agent
 =====================
 

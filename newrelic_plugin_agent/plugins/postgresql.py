@@ -1,5 +1,5 @@
 """
-PostgreSQL Plugin
+PostgreSQL2 Plugin
 
 """
 import logging
@@ -58,10 +58,10 @@ SELECT
 FROM (
     SELECT
         client_addr, client_hostname, state,
-        ('x' || lpad(split_part(sent_location,   '/', 1), 8, '0'))::bit(32)::bigint AS sent_xlog,
-        ('x' || lpad(split_part(replay_location, '/', 1), 8, '0'))::bit(32)::bigint AS replay_xlog,
-        ('x' || lpad(split_part(sent_location,   '/', 2), 8, '0'))::bit(32)::bigint AS sent_offset,
-        ('x' || lpad(split_part(replay_location, '/', 2), 8, '0'))::bit(32)::bigint AS replay_offset
+        ('x' || lpad(split_part(sent_location::text,   '/', 1), 8, '0'))::bit(32)::bigint AS sent_xlog,
+        ('x' || lpad(split_part(replay_location::text, '/', 1), 8, '0'))::bit(32)::bigint AS replay_xlog,
+        ('x' || lpad(split_part(sent_location::text,   '/', 2), 8, '0'))::bit(32)::bigint AS sent_offset,
+        ('x' || lpad(split_part(replay_location::text, '/', 2), 8, '0'))::bit(32)::bigint AS replay_offset
     FROM pg_stat_replication
 ) AS s;
 """
@@ -79,7 +79,7 @@ LOCK_MAP = {'AccessExclusiveLock': 'Locks/Access Exclusive',
 
 class PostgreSQL(base.Plugin):
 
-    GUID = 'com.meetme.newrelic_postgresql_agent'
+    GUID = 'com.meetme.newrelic_postgresql_agent2'
 
     def add_stats(self, cursor):
         self.add_backend_stats(cursor)
@@ -90,7 +90,10 @@ class PostgreSQL(base.Plugin):
             self.add_index_stats(cursor)
             self.add_statio_stats(cursor)
             self.add_table_stats(cursor)
-        self.add_replication_stats(cursor)
+        try:
+            self.add_replication_stats(cursor)
+        except:
+            LOGGER.exception("error retrieving replication status")
         self.add_transaction_stats(cursor)
 
         # add_wal_metrics needs superuser to get directory listings
@@ -255,7 +258,7 @@ class PostgreSQL(base.Plugin):
                                  int(row.get('byte_lag', 0)))
 
     def connect(self):
-        """Connect to PostgreSQL, returning the connection object.
+        """Connect to PostgreSQL2, returning the connection object.
 
         :rtype: psycopg2.connection
 
